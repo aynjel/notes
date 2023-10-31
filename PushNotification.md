@@ -29,7 +29,7 @@ export const environment = {
 ```typescript # Path: src/app/webpubsub.service.ts
 constructor(
     private http: HttpClient
-    ) { }
+) { }
 
 addSubscription(sub: any): Observable<any>{
     return this.http.post(`${environment.notificationApiUrl}/subscribe`, sub);
@@ -45,39 +45,43 @@ removeSubscription(sub: any): Observable<any>{
 import { WebPubSubService } from './webpubsub.service';
 ```
 ```typescript # Path: src/app/app.component.ts
-if ('serviceWorker' in navigator && 'PushManager' in window) {
-      navigator.serviceWorker.ready.then((reg) => {
-        console.log("Service Worker ready!");
-        reg.pushManager.getSubscription().then((sub) => {
-            if(sub === undefined){
-                console.log("Not subscribed to push service!");
-
-                // subscribe user
-                reg.pushManager.subscribe({
-                    userVisibleOnly: true
-                }).then((sub) => {
-                    console.log("Subscribed to push service!", sub);
-                    this.webPubSubService.addSubscription({
-                        userId: "123456789123", // your user id
-                        app: "doki" // your app name
-                    }).subscribe({
-                        next: data => {
-                            console.log(data);
-                        },
-                        error: error => {
-                            console.log(error);
-                        }
+constructor(
+    private webPubSubService: WebPubSubService
+) {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+          navigator.serviceWorker.ready.then((reg) => {
+            console.log("Service Worker ready!");
+            reg.pushManager.getSubscription().then((sub) => {
+                if(sub === undefined){
+                    console.log("Not subscribed to push service!");
+    
+                    // subscribe user
+                    reg.pushManager.subscribe({
+                        userVisibleOnly: true
+                    }).then((sub) => {
+                        console.log("Subscribed to push service!", sub);
+                        this.webPubSubService.addSubscription({
+                            userId: "123456789123", // your user id
+                            app: "doki" // your app name
+                        }).subscribe({
+                            next: data => {
+                                console.log(data);
+                            },
+                            error: error => {
+                                console.log(error);
+                            }
+                        });
+                    }).catch((err) => {
+                        console.log("Could not subscribe to push service!", err);
                     });
-                }).catch((err) => {
-                    console.log("Could not subscribe to push service!", err);
-                });
-            }else{
-                console.log("Subscription object: ", sub);
-            }
+                }else{
+                    console.log("Subscription object: ", sub);
+                }
+            });
         });
-    });
-}else{
-    console.log("Service Worker and Push is not supported");
+    }else{
+        console.log("Service Worker and Push is not supported");
+    }
 }
 ```
 ```typescript # Path: src/app/app.component.ts
